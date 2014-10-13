@@ -161,7 +161,10 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 {
 	if(_enforceScrollToBottom)
 	{
-		[self.collectionView removeObserver:self forKeyPath:@"contentSize" context:kJSQCollectionViewSizeKeyValueObservingContext];
+		@try {
+			[self.collectionView removeObserver:self forKeyPath:@"contentSize" context:kJSQCollectionViewSizeKeyValueObservingContext];
+		}
+		@catch (NSException* __unused exception) { }
 	}
 	
     [self jsq_registerForNotifications:NO];
