@@ -155,6 +155,8 @@
  */
 @property (weak, nonatomic, readonly) UITapGestureRecognizer *tapGestureRecognizer;
 
+@property (nonatomic) BOOL animatesEntrance;
+
 #pragma mark - Class methods
 
 /**

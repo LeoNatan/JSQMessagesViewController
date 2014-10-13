@@ -125,8 +125,7 @@
     self.textView.contentOffset = CGPointZero;
     self.textView.textContainerInset = UIEdgeInsetsZero;
     self.textView.textContainer.lineFragmentPadding = 0;
-    self.textView.linkTextAttributes = @{ NSForegroundColorAttributeName : [UIColor whiteColor],
-                                          NSUnderlineStyleAttributeName : @(NSUnderlineStyleSingle | NSUnderlinePatternSolid) };
+    self.textView.linkTextAttributes = @{ NSUnderlineStyleAttributeName : @(NSUnderlineStyleSingle | NSUnderlinePatternSolid) };
     
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(jsq_handleTapGesture:)];
     [self addGestureRecognizer:tap];

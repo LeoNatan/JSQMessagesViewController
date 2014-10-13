@@ -44,7 +44,7 @@
 
 
 static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObservingContext;
-
+static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionViewSizeKeyValueObservingContext;
 
 
 @interface JSQMessagesViewController () <JSQMessagesInputToolbarDelegate,
@@ -97,6 +97,9 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
 
 
 @implementation JSQMessagesViewController
+{
+	BOOL _enforceScrollToBottom;
+}
 
 #pragma mark - Class methods
 
@@ -156,6 +159,11 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
 
 - (void)dealloc
 {
+	if(_enforceScrollToBottom)
+	{
+		[self.collectionView removeObserver:self forKeyPath:@"contentSize" context:kJSQCollectionViewSizeKeyValueObservingContext];
+	}
+	
     [self jsq_registerForNotifications:NO];
     [self jsq_removeObservers];
     
@@ -211,6 +219,9 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
                                 options:nil];
     [self jsq_configureMessagesViewController];
     [self jsq_registerForNotifications:YES];
+	
+	_enforceScrollToBottom = YES;
+	[self.collectionView addObserver:self forKeyPath:@"contentSize" options:0 context:kJSQCollectionViewSizeKeyValueObservingContext];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -219,13 +230,11 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
     [self.view layoutIfNeeded];
     [self.collectionView.collectionViewLayout invalidateLayout];
     
-    if (self.automaticallyScrollsToMostRecentMessage) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self scrollToBottomAnimated:NO];
-            [self.collectionView.collectionViewLayout invalidateLayoutWithContext:[JSQMessagesCollectionViewFlowLayoutInvalidationContext context]];
-        });
-    }
-    
+	if (self.automaticallyScrollsToMostRecentMessage) {
+		[self scrollToBottomAnimated:NO];
+		[self.collectionView.collectionViewLayout invalidateLayoutWithContext:[JSQMessagesCollectionViewFlowLayoutInvalidationContext context]];
+	}
+	
     [self jsq_updateKeyboardTriggerPoint];
 }
 
@@ -239,6 +248,12 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
     if ([UIDevice jsq_isCurrentDeviceBeforeiOS8]) {
         [self.snapshotView removeFromSuperview];
     }
+	
+	if(_enforceScrollToBottom)
+	{
+		_enforceScrollToBottom = NO;
+		[self.collectionView removeObserver:self forKeyPath:@"contentSize" context:kJSQCollectionViewSizeKeyValueObservingContext];
+	}
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -328,23 +343,25 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
     [self.collectionView reloadData];
     
     if (self.automaticallyScrollsToMostRecentMessage) {
-        [self scrollToBottomAnimated:YES];
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self scrollToBottomAnimated:YES];
+		});
     }
 }
 
 - (void)scrollToBottomAnimated:(BOOL)animated
 {
-    if ([self.collectionView numberOfSections] == 0) {
-        return;
-    }
-    
-    NSInteger items = [self.collectionView numberOfItemsInSection:0];
-    
-    if (items > 0) {
-        [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:items - 1 inSection:0]
-                                    atScrollPosition:UICollectionViewScrollPositionTop
-                                            animated:animated];
-    }
+	void (^scrollToBottomAnimation)() = ^{
+		self.collectionView.contentOffset = CGPointMake(0, MAX(- self.collectionView.contentInset.top, self.collectionView.contentSize.height - (self.collectionView.bounds.size.height - self.collectionView.contentInset.bottom)));
+	};
+	
+	if(!animated)
+	{
+		scrollToBottomAnimation();
+		return;
+	}
+	
+	[UIView animateWithDuration:0.3 animations:scrollToBottomAnimation];
 }
 
 #pragma mark - JSQMessages collection view data source
@@ -504,6 +521,26 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
 }
 
 #pragma mark - Collection view delegate
+
+- (void)collectionView:(UICollectionView *)collectionView willDisplayCell:(JSQMessagesCollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath
+{
+	cell.clipsToBounds = NO;
+	
+	if(cell.animatesEntrance)
+	{
+		[cell.textView setTransform:CGAffineTransformMakeTranslation(-collectionView.bounds.size.width, 0)];
+		[cell.messageBubbleImageView setTransform:CGAffineTransformMakeTranslation(-collectionView.bounds.size.width, 0)];
+		[cell.mediaView setTransform:CGAffineTransformMakeTranslation(-collectionView.bounds.size.width, 0)];
+		
+		[UIView animateWithDuration:0.7 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+			[cell.textView setTransform:CGAffineTransformIdentity];
+			[cell.messageBubbleImageView setTransform:CGAffineTransformIdentity];
+			[cell.mediaView setTransform:CGAffineTransformIdentity];
+		} completion:^(BOOL finished) {
+			cell.animatesEntrance = NO;
+		}];
+	}
+}
 
 - (BOOL)collectionView:(JSQMessagesCollectionView *)collectionView shouldShowMenuForItemAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -707,7 +744,14 @@ static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObserv
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
-    if (context == kJSQMessagesKeyValueObservingContext) {
+	if(context == kJSQCollectionViewSizeKeyValueObservingContext)
+	{
+		if(_enforceScrollToBottom && object == self.collectionView && [keyPath isEqualToString:@"contentSize"])
+		{
+			[self scrollToBottomAnimated:NO];
+		}
+	}
+	else if (context == kJSQMessagesKeyValueObservingContext) {
         
         if (object == self.inputToolbar.contentView.textView
             && [keyPath isEqualToString:NSStringFromSelector(@selector(contentSize))]) {

@@ -79,10 +79,7 @@
 
 - (CGSize)mediaViewDisplaySize
 {
-    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-        return CGSizeMake(300.0f, 180.0f);
-    }
-    return CGSizeMake(200.0f, 120.0f);
+    return CGSizeMake(240, 240);
 }
 
 - (UIView *)mediaPlaceholderView
