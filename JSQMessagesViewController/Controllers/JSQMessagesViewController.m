@@ -346,9 +346,7 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     [self.collectionView reloadData];
     
     if (self.automaticallyScrollsToMostRecentMessage) {
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[self scrollToBottomAnimated:YES];
-		});
+        [self scrollToBottomAnimated:YES];
     }
 }
 
