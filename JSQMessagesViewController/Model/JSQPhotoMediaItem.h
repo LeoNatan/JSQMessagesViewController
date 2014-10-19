@@ -31,6 +31,11 @@
  */
 @property (copy, nonatomic) UIImage *image;
 
+/*
+ * The size of the item.
+ */
+@property (nonatomic) CGSize size;
+
 /**
  *  Initializes and returns a photo media item object having the given image.
  *
@@ -42,6 +47,6 @@
  *  you may initialize a `JSQPhotoMediaItem` object with a `nil` image. 
  *  Once the image has been retrieved, you can then set the image property.
  */
-- (instancetype)initWithImage:(UIImage *)image;
+- (instancetype)initWithImage:(UIImage *)image size:(CGSize)size;
 
 @end

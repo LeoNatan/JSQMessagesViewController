@@ -32,11 +32,12 @@
 
 #pragma mark - Initialization
 
-- (instancetype)initWithImage:(UIImage *)image
+- (instancetype)initWithImage:(UIImage *)image size:(CGSize)size
 {
     self = [super init];
     if (self) {
         _image = [UIImage imageWithCGImage:image.CGImage];
+		_size = size;
         _cachedImageView = nil;
     }
     return self;
@@ -79,7 +80,7 @@
 
 - (CGSize)mediaViewDisplaySize
 {
-    return CGSizeMake(240, 240);
+    return self.size;
 }
 
 - (UIView *)mediaPlaceholderView
