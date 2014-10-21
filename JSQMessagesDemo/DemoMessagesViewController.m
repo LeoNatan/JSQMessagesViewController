@@ -149,6 +149,7 @@
             
             if ([copyMediaData isKindOfClass:[JSQPhotoMediaItem class]]) {
                 JSQPhotoMediaItem *photoItemCopy = [((JSQPhotoMediaItem *)copyMediaData) copy];
+                photoItemCopy.appliesMediaViewMaskAsOutgoing = NO;
                 newMediaAttachmentCopy = [UIImage imageWithCGImage:photoItemCopy.image.CGImage];
                 
                 /**
@@ -161,6 +162,7 @@
             }
             else if ([copyMediaData isKindOfClass:[JSQLocationMediaItem class]]) {
                 JSQLocationMediaItem *locationItemCopy = [((JSQLocationMediaItem *)copyMediaData) copy];
+                locationItemCopy.appliesMediaViewMaskAsOutgoing = NO;
                 newMediaAttachmentCopy = [locationItemCopy.location copy];
                 
                 /**
@@ -172,6 +174,7 @@
             }
             else if ([copyMediaData isKindOfClass:[JSQVideoMediaItem class]]) {
                 JSQVideoMediaItem *videoItemCopy = [((JSQVideoMediaItem *)copyMediaData) copy];
+                videoItemCopy.appliesMediaViewMaskAsOutgoing = NO;
                 newMediaAttachmentCopy = [videoItemCopy.fileURL copy];
                 
                 /**
