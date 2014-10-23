@@ -26,16 +26,15 @@
 
 + (UIButton *)defaultAccessoryButtonItem
 {
-	UIImage *cameraImage = [[UIImage imageNamed:@"clip"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-	UIImage *cameraNormal = cameraImage;
+	UIImage *accessoryImage = [[UIImage jsq_defaultAccessoryImage] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
 	
-    UIButton *cameraButton = [[UIButton alloc] initWithFrame:CGRectZero];
-    [cameraButton setImage:cameraNormal forState:UIControlStateNormal];
+    UIButton *accessoryButton = [[UIButton alloc] initWithFrame:CGRectZero];
+    [accessoryButton setImage:accessoryImage forState:UIControlStateNormal];
     
-    cameraButton.contentMode = UIViewContentModeScaleAspectFit;
-    cameraButton.backgroundColor = [UIColor clearColor];
+    accessoryButton.contentMode = UIViewContentModeScaleAspectFit;
+    accessoryButton.backgroundColor = [UIColor clearColor];
 	
-    return cameraButton;
+    return accessoryButton;
 }
 
 + (UIButton *)defaultSendButtonItem
