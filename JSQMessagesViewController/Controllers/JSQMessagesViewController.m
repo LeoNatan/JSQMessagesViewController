@@ -490,6 +490,9 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     
     cell.textView.dataDetectorTypes = UIDataDetectorTypeAll;
     
+    cell.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    cell.layer.shouldRasterize = YES;
+    
     return cell;
 }
 
