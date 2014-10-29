@@ -93,4 +93,9 @@ FOUNDATION_EXPORT const CGFloat kJSQMessagesInputToolbarHeightDefault;
  */
 - (void)toggleSendButtonEnabled;
 
+/**
+ *  Force the send button to be disabled.
+ */
+@property (assign, nonatomic) BOOL toolbarButtonsDisabled;
+
 @end

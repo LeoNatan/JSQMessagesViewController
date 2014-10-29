@@ -46,7 +46,7 @@
     CGFloat cornerRadius = 6.0f;
     
     self.backgroundColor = [UIColor whiteColor];
-    self.layer.borderWidth = 1 / [UIScreen mainScreen].scale;
+    self.layer.borderWidth = 1 / [UIScreen mainScreen].nativeScale;
     self.layer.borderColor = [UIColor lightGrayColor].CGColor;
     self.layer.cornerRadius = cornerRadius;
     

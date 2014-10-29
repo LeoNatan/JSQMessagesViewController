@@ -95,14 +95,23 @@ static void * kJSQMessagesInputToolbarKeyValueObservingContext = &kJSQMessagesIn
 
 #pragma mark - Input toolbar
 
+- (void)setToolbarButtonsDisabled:(BOOL)sendButtonDisabled
+{
+	_toolbarButtonsDisabled = sendButtonDisabled;
+	
+	[self toggleSendButtonEnabled];
+}
+
 - (void)toggleSendButtonEnabled
 {
-    BOOL hasText = [self.contentView.textView hasText];
+    BOOL hasText = [self.contentView.textView hasText] && !self.toolbarButtonsDisabled;
     
-    if (self.sendButtonOnRight) {
+    if (self.sendButtonOnRight)
+	{
         self.contentView.rightBarButtonItem.enabled = hasText;
     }
-    else {
+    else
+	{
         self.contentView.leftBarButtonItem.enabled = hasText;
     }
 }
