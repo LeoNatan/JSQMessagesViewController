@@ -335,9 +335,13 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     [self.collectionView.collectionViewLayout invalidateLayoutWithContext:[JSQMessagesCollectionViewFlowLayoutInvalidationContext context]];
     [self.collectionView reloadData];
     
-    if (self.automaticallyScrollsToMostRecentMessage) {
+	if (self.automaticallyScrollsToMostRecentMessage) {
 		dispatch_async(dispatch_get_main_queue(), ^{
-			[self scrollToBottomAnimated:YES];
+			dispatch_async(dispatch_get_main_queue(), ^{
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[self scrollToBottomAnimated:YES];
+				});
+			});
 		});
 	}
 }
@@ -351,7 +355,11 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     
     if (self.automaticallyScrollsToMostRecentMessage && ![self jsq_isMenuVisible]) {
 		dispatch_async(dispatch_get_main_queue(), ^{
-			[self scrollToBottomAnimated:YES];
+			dispatch_async(dispatch_get_main_queue(), ^{
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[self scrollToBottomAnimated:YES];
+				});
+			});
 		});
     }
 }
@@ -443,6 +451,12 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     if (!isMediaMessage) {
         cell.textView.text = [messageItem text];
         NSParameterAssert(cell.textView.text != nil);
+		
+		NSMutableAttributedString* subjectAttrString = [[cell.textView attributedText] mutableCopy];
+		NSMutableDictionary* attributes = [[subjectAttrString attributesAtIndex:0 effectiveRange:NULL] mutableCopy];
+		[attributes removeObjectForKey:@"NSLink"];
+		[subjectAttrString setAttributes:attributes range:NSMakeRange(0, subjectAttrString.length)];
+		[cell.textView setAttributedText:subjectAttrString];
         
         id<JSQMessageBubbleImageDataSource> bubbleImageDataSource = [collectionView.dataSource collectionView:collectionView messageBubbleImageDataForItemAtIndexPath:indexPath];
         if (bubbleImageDataSource != nil) {
@@ -489,9 +503,6 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     }
     
     cell.textView.dataDetectorTypes = UIDataDetectorTypeAll;
-    
-    cell.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    cell.layer.shouldRasterize = YES;
     
     return cell;
 }
@@ -542,7 +553,7 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 		[cell.messageBubbleImageView setTransform:CGAffineTransformMakeTranslation(-collectionView.bounds.size.width, 0)];
 		[cell.mediaView setTransform:CGAffineTransformMakeTranslation(-collectionView.bounds.size.width, 0)];
 		
-		[UIView animateWithDuration:0.7 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+		[UIView animateWithDuration:0.15 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
 			[cell.textView setTransform:CGAffineTransformIdentity];
 			[cell.messageBubbleImageView setTransform:CGAffineTransformIdentity];
 			[cell.mediaView setTransform:CGAffineTransformIdentity];
