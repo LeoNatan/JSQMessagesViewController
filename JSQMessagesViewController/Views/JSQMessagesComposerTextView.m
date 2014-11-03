@@ -35,6 +35,8 @@
 
 @end
 
+
+
 @implementation JSQMessagesComposerTextView
 
 #pragma mark - Initialization
@@ -70,10 +72,10 @@
     self.returnKeyType = UIReturnKeyDefault;
     
     self.text = nil;
-	
+    
     _placeHolder = nil;
     _placeHolderTextColor = [UIColor lightGrayColor];
-	
+    
     [self jsq_addTextViewNotificationObservers];
 }
 
