@@ -23,23 +23,40 @@
 - (void)awakeFromNib
 {
     [super awakeFromNib];
-    
-    self.textColor = [UIColor whiteColor];
-    self.editable = NO;
-    self.selectable = YES;
-    self.userInteractionEnabled = YES;
-    self.dataDetectorTypes = UIDataDetectorTypeNone;
-    self.showsHorizontalScrollIndicator = NO;
-    self.showsVerticalScrollIndicator = NO;
-    self.scrollEnabled = NO;
-    self.backgroundColor = [UIColor clearColor];
-    self.contentInset = UIEdgeInsetsZero;
-    self.scrollIndicatorInsets = UIEdgeInsetsZero;
-    self.contentOffset = CGPointZero;
-    self.textContainerInset = UIEdgeInsetsZero;
-    self.textContainer.lineFragmentPadding = 0;
-    self.linkTextAttributes = @{ NSForegroundColorAttributeName : [UIColor whiteColor],
-                                 NSUnderlineStyleAttributeName : @(NSUnderlineStyleSingle | NSUnderlinePatternSolid) };
+	
+	self.textColor = [UIColor whiteColor];
+	self.editable = NO;
+	self.selectable = YES;
+	self.userInteractionEnabled = YES;
+	self.dataDetectorTypes = UIDataDetectorTypeNone;
+	self.showsHorizontalScrollIndicator = NO;
+	self.showsVerticalScrollIndicator = NO;
+	self.scrollEnabled = NO;
+	self.backgroundColor = [UIColor clearColor];
+	self.textContainerInset = UIEdgeInsetsZero;
+	self.contentInset = UIEdgeInsetsZero;
+	self.scrollIndicatorInsets = UIEdgeInsetsZero;
+	self.contentOffset = CGPointZero;
+	self.textContainerInset = UIEdgeInsetsZero;
+	self.textContainer.lineFragmentPadding = 0;
+	self.linkTextAttributes = @{ NSUnderlineStyleAttributeName : @(NSUnderlineStyleSingle | NSUnderlinePatternSolid) };
+	
+//    self.textColor = [UIColor whiteColor];
+//    self.editable = NO;
+//    self.selectable = YES;
+//    self.userInteractionEnabled = YES;
+//    self.dataDetectorTypes = UIDataDetectorTypeNone;
+//    self.showsHorizontalScrollIndicator = NO;
+//    self.showsVerticalScrollIndicator = NO;
+//    self.scrollEnabled = NO;
+//    self.backgroundColor = [UIColor clearColor];
+//    self.contentInset = UIEdgeInsetsZero;
+//    self.scrollIndicatorInsets = UIEdgeInsetsZero;
+//    self.contentOffset = CGPointZero;
+//    self.textContainerInset = UIEdgeInsetsZero;
+//    self.textContainer.lineFragmentPadding = 0;
+//    self.linkTextAttributes = @{ NSForegroundColorAttributeName : [UIColor whiteColor],
+//                                 NSUnderlineStyleAttributeName : @(NSUnderlineStyleSingle | NSUnderlinePatternSolid) };
 }
 
 - (void)setSelectedRange:(NSRange)selectedRange

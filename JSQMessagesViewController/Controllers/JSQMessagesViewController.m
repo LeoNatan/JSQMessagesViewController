@@ -239,6 +239,7 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 {
     [super viewWillAppear:animated];
     [self.view layoutIfNeeded];
+	
     [self.collectionView.collectionViewLayout invalidateLayout];
     
 	if (self.automaticallyScrollsToMostRecentMessage) {
@@ -929,7 +930,7 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 
 - (void)jsq_updateCollectionViewInsets
 {
-    [self jsq_setCollectionViewInsetsTopValue:self.topLayoutGuide.length + self.topContentAdditionalInset
+    [self jsq_setCollectionViewInsetsTopValue:self.collectionView.contentInset.top + self.topContentAdditionalInset
                                   bottomValue:CGRectGetMaxY(self.collectionView.frame) - CGRectGetMinY(self.inputToolbar.frame)];
 }
 
