@@ -123,9 +123,9 @@
     JSQMessage *copyMessage = [[self.demoData.messages lastObject] copy];
     
     if (!copyMessage) {
-        copyMessage = [JSQTextMessage messageWithSenderId:kJSQDemoAvatarIdJobs
-                                              displayName:kJSQDemoAvatarDisplayNameJobs
-                                                     text:@"First received!"];
+        copyMessage = [JSQMessage messageWithSenderId:kJSQDemoAvatarIdJobs
+                                          displayName:kJSQDemoAvatarDisplayNameJobs
+                                                 text:@"First received!"];
     }
     
     /**
@@ -141,7 +141,7 @@
         id<JSQMessageMediaData> newMediaData = nil;
         id newMediaAttachmentCopy = nil;
         
-        if ([copyMessage isKindOfClass:[JSQMediaMessage class]]) {
+        if (copyMessage.isMediaMessage) {
             /**
              *  Last message was a media message
              */
@@ -189,17 +189,17 @@
                 NSLog(@"%s error: unrecognized media item", __PRETTY_FUNCTION__);
             }
             
-            newMessage = [JSQMediaMessage messageWithSenderId:randomUserId
-                                                  displayName:self.demoData.users[randomUserId]
-                                                        media:newMediaData];
+            newMessage = [JSQMessage messageWithSenderId:randomUserId
+                                             displayName:self.demoData.users[randomUserId]
+                                                   media:newMediaData];
         }
         else {
             /**
              *  Last message was a text message
              */
-            newMessage = [JSQTextMessage messageWithSenderId:randomUserId
-                                                 displayName:self.demoData.users[randomUserId]
-                                                        text:copyMessage.text];
+            newMessage = [JSQMessage messageWithSenderId:randomUserId
+                                             displayName:self.demoData.users[randomUserId]
+                                                    text:copyMessage.text];
         }
         
         /**
@@ -214,7 +214,7 @@
         [self finishReceivingMessage];
         
         
-        if ([newMessage isKindOfClass:[JSQMediaMessage class]]) {
+        if (newMessage.isMediaMessage) {
             /**
              *  Simulate "downloading" media
              */
@@ -274,12 +274,12 @@
      *  2. Add new id<JSQMessageData> object to your data source
      *  3. Call `finishSendingMessage`
      */
-//    [JSQSystemSoundPlayer jsq_playMessageSentSound];
-	
-    JSQTextMessage *message = [[JSQTextMessage alloc] initWithSenderId:senderId
-                                                     senderDisplayName:senderDisplayName
-                                                                  date:date
-                                                                  text:text];
+    [JSQSystemSoundPlayer jsq_playMessageSentSound];
+    
+    JSQMessage *message = [[JSQMessage alloc] initWithSenderId:senderId
+                                             senderDisplayName:senderDisplayName
+                                                          date:date
+                                                          text:text];
     
     [self.demoData.messages addObject:message];
     [self finishSendingMessage];
@@ -467,7 +467,7 @@
     
     JSQMessage *msg = [self.demoData.messages objectAtIndex:indexPath.item];
     
-    if ([msg isKindOfClass:[JSQTextMessage class]]) {
+    if (!msg.isMediaMessage) {
         
         if ([msg.senderId isEqualToString:self.senderId]) {
             cell.textView.textColor = [UIColor blackColor];
