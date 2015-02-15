@@ -353,7 +353,13 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     [self.collectionView reloadData];
     
     if (self.automaticallyScrollsToMostRecentMessage) {
-        [self scrollToBottomAnimated:animated];
+		dispatch_async(dispatch_get_main_queue(), ^{
+			dispatch_async(dispatch_get_main_queue(), ^{
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[self scrollToBottomAnimated:animated];
+				});
+			});
+		});
     }
 }
 
@@ -370,48 +376,29 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     [self.collectionView reloadData];
     
     if (self.automaticallyScrollsToMostRecentMessage && ![self jsq_isMenuVisible]) {
-        [self scrollToBottomAnimated:animated];
+		dispatch_async(dispatch_get_main_queue(), ^{
+			dispatch_async(dispatch_get_main_queue(), ^{
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[self scrollToBottomAnimated:animated];
+				});
+			});
+		});
     }
 }
 
 - (void)scrollToBottomAnimated:(BOOL)animated
 {
-    if ([self.collectionView numberOfSections] == 0) {
-        return;
-    }
-    
-    NSInteger items = [self.collectionView numberOfItemsInSection:0];
-    
-    if (items == 0) {
-        return;
-    }
-    
-    CGFloat collectionViewContentHeight = [self.collectionView.collectionViewLayout collectionViewContentSize].height;
-    BOOL isContentTooSmall = (collectionViewContentHeight < CGRectGetHeight(self.collectionView.bounds));
-    
-    if (isContentTooSmall) {
-        //  workaround for the first few messages not scrolling
-        //  when the collection view content size is too small, `scrollToItemAtIndexPath:` doesn't work properly
-        //  this seems to be a UIKit bug, see #256 on GitHub
-        [self.collectionView scrollRectToVisible:CGRectMake(0.0, collectionViewContentHeight - 1.0f, 1.0f, 1.0f)
-                                        animated:animated];
-        return;
-    }
-    
-    //  workaround for really long messages not scrolling
-    //  if last message is too long, use scroll position bottom for better appearance, else use top
-    //  possibly a UIKit bug, see #480 on GitHub
-    NSUInteger finalRow = MAX(0, [self.collectionView numberOfItemsInSection:0] - 1);
-    NSIndexPath *finalIndexPath = [NSIndexPath indexPathForItem:finalRow inSection:0];
-    CGSize finalCellSize = [self.collectionView.collectionViewLayout sizeForItemAtIndexPath:finalIndexPath];
-    
-    CGFloat maxHeightForVisibleMessage = CGRectGetHeight(self.collectionView.bounds) - self.collectionView.contentInset.top - CGRectGetHeight(self.inputToolbar.bounds);
-    
-    UICollectionViewScrollPosition scrollPosition = (finalCellSize.height > maxHeightForVisibleMessage) ? UICollectionViewScrollPositionBottom : UICollectionViewScrollPositionTop;
-    
-    [self.collectionView scrollToItemAtIndexPath:finalIndexPath
-                                atScrollPosition:scrollPosition
-                                        animated:animated];
+	void (^scrollToBottomAnimation)() = ^{
+		self.collectionView.contentOffset = CGPointMake(0, MAX(- self.collectionView.contentInset.top, self.collectionView.contentSize.height - (self.collectionView.bounds.size.height - self.collectionView.contentInset.bottom)));
+	};
+	
+	if(!animated)
+	{
+		scrollToBottomAnimation();
+		return;
+	}
+	
+	[UIView animateWithDuration:0.3 animations:scrollToBottomAnimation];
 }
 
 #pragma mark - JSQMessages collection view data source
