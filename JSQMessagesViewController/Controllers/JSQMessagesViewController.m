@@ -108,13 +108,13 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 + (UINib *)nib
 {
     return [UINib nibWithNibName:NSStringFromClass([JSQMessagesViewController class])
-                          bundle:[NSBundle mainBundle]];
+                          bundle:[NSBundle bundleForClass:[JSQMessagesViewController class]]];
 }
 
 + (instancetype)messagesViewController
 {
     return [[[self class] alloc] initWithNibName:NSStringFromClass([JSQMessagesViewController class])
-                                          bundle:[NSBundle mainBundle]];
+                                          bundle:[NSBundle bundleForClass:[JSQMessagesViewController class]]];
 }
 
 #pragma mark - Initialization
@@ -125,7 +125,7 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     
     self.jsq_isObserving = NO;
     
-    self.toolbarHeightConstraint.constant = kJSQMessagesInputToolbarHeightDefault;
+    self.toolbarHeightConstraint.constant = self.inputToolbar.preferredDefaultHeight;
     
     self.collectionView.dataSource = self;
     self.collectionView.delegate = self;
@@ -133,10 +133,7 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     self.inputToolbar.delegate = self;
     self.inputToolbar.contentView.textView.placeHolder = NSLocalizedStringFromTable(@"New Message", @"JSQMessages", @"Placeholder text for the message input text view");
     self.inputToolbar.contentView.textView.delegate = self;
-    
-    self.senderId = @"JSQDefaultSender";
-    self.senderDisplayName = @"JSQDefaultSender";
-    
+
     self.automaticallyScrollsToMostRecentMessage = YES;
     
     self.outgoingCellIdentifier = [JSQMessagesCollectionViewCellOutgoing cellReuseIdentifier];
@@ -237,9 +234,11 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 
 - (void)viewWillAppear:(BOOL)animated
 {
+    NSParameterAssert(self.senderId != nil);
+    NSParameterAssert(self.senderDisplayName != nil);
+    
     [super viewWillAppear:animated];
     [self.view layoutIfNeeded];
-	
     [self.collectionView.collectionViewLayout invalidateLayout];
     
 	if (self.automaticallyScrollsToMostRecentMessage) {
@@ -280,7 +279,6 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     [super viewDidDisappear:animated];
     [self jsq_removeObservers];
     [self.keyboardController endListeningForKeyboard];
-    [self jsq_setToolbarBottomLayoutGuideConstant:0.0f];
 }
 
 - (void)didReceiveMemoryWarning
@@ -310,11 +308,14 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     [self.collectionView.collectionViewLayout invalidateLayoutWithContext:[JSQMessagesCollectionViewFlowLayoutInvalidationContext context]];
 }
 
-#pragma mark - UIResponder
-
-- (BOOL)canBecomeFirstResponder
+- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
 {
-    return YES;
+    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+    if (self.showTypingIndicator) {
+        self.showTypingIndicator = NO;
+        self.showTypingIndicator = YES;
+        [self.collectionView reloadData];
+    }
 }
 
 #pragma mark - Messages view controller
@@ -328,10 +329,18 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     NSAssert(NO, @"Error! required method not implemented in subclass. Need to implement %s", __PRETTY_FUNCTION__);
 }
 
-- (void)didPressAccessoryButton:(UIButton *)sender { }
+- (void)didPressAccessoryButton:(UIButton *)sender
+{
+    NSAssert(NO, @"Error! required method not implemented in subclass. Need to implement %s", __PRETTY_FUNCTION__);
+}
 
 - (void)finishSendingMessage
 {
+    [self finishSendingMessageAnimated:YES];
+}
+
+- (void)finishSendingMessageAnimated:(BOOL)animated {
+    
     UITextView *textView = self.inputToolbar.contentView.textView;
     textView.text = nil;
     [textView.undoManager removeAllActions];
@@ -343,48 +352,66 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     [self.collectionView.collectionViewLayout invalidateLayoutWithContext:[JSQMessagesCollectionViewFlowLayoutInvalidationContext context]];
     [self.collectionView reloadData];
     
-	if (self.automaticallyScrollsToMostRecentMessage) {
-		dispatch_async(dispatch_get_main_queue(), ^{
-			dispatch_async(dispatch_get_main_queue(), ^{
-				dispatch_async(dispatch_get_main_queue(), ^{
-					[self scrollToBottomAnimated:YES];
-				});
-			});
-		});
-	}
+    if (self.automaticallyScrollsToMostRecentMessage) {
+        [self scrollToBottomAnimated:animated];
+    }
 }
 
 - (void)finishReceivingMessage
 {
+    [self finishReceivingMessageAnimated:YES];
+}
+
+- (void)finishReceivingMessageAnimated:(BOOL)animated {
+    
     self.showTypingIndicator = NO;
     
     [self.collectionView.collectionViewLayout invalidateLayoutWithContext:[JSQMessagesCollectionViewFlowLayoutInvalidationContext context]];
     [self.collectionView reloadData];
     
     if (self.automaticallyScrollsToMostRecentMessage && ![self jsq_isMenuVisible]) {
-		dispatch_async(dispatch_get_main_queue(), ^{
-			dispatch_async(dispatch_get_main_queue(), ^{
-				dispatch_async(dispatch_get_main_queue(), ^{
-					[self scrollToBottomAnimated:YES];
-				});
-			});
-		});
+        [self scrollToBottomAnimated:animated];
     }
 }
 
 - (void)scrollToBottomAnimated:(BOOL)animated
 {
-	void (^scrollToBottomAnimation)() = ^{
-		self.collectionView.contentOffset = CGPointMake(0, MAX(- self.collectionView.contentInset.top, self.collectionView.contentSize.height - (self.collectionView.bounds.size.height - self.collectionView.contentInset.bottom)));
-	};
-	
-	if(!animated)
-	{
-		scrollToBottomAnimation();
-		return;
-	}
-	
-	[UIView animateWithDuration:0.3 animations:scrollToBottomAnimation];
+    if ([self.collectionView numberOfSections] == 0) {
+        return;
+    }
+    
+    NSInteger items = [self.collectionView numberOfItemsInSection:0];
+    
+    if (items == 0) {
+        return;
+    }
+    
+    CGFloat collectionViewContentHeight = [self.collectionView.collectionViewLayout collectionViewContentSize].height;
+    BOOL isContentTooSmall = (collectionViewContentHeight < CGRectGetHeight(self.collectionView.bounds));
+    
+    if (isContentTooSmall) {
+        //  workaround for the first few messages not scrolling
+        //  when the collection view content size is too small, `scrollToItemAtIndexPath:` doesn't work properly
+        //  this seems to be a UIKit bug, see #256 on GitHub
+        [self.collectionView scrollRectToVisible:CGRectMake(0.0, collectionViewContentHeight - 1.0f, 1.0f, 1.0f)
+                                        animated:animated];
+        return;
+    }
+    
+    //  workaround for really long messages not scrolling
+    //  if last message is too long, use scroll position bottom for better appearance, else use top
+    //  possibly a UIKit bug, see #480 on GitHub
+    NSUInteger finalRow = MAX(0, [self.collectionView numberOfItemsInSection:0] - 1);
+    NSIndexPath *finalIndexPath = [NSIndexPath indexPathForItem:finalRow inSection:0];
+    CGSize finalCellSize = [self.collectionView.collectionViewLayout sizeForItemAtIndexPath:finalIndexPath];
+    
+    CGFloat maxHeightForVisibleMessage = CGRectGetHeight(self.collectionView.bounds) - self.collectionView.contentInset.top - CGRectGetHeight(self.inputToolbar.bounds);
+    
+    UICollectionViewScrollPosition scrollPosition = (finalCellSize.height > maxHeightForVisibleMessage) ? UICollectionViewScrollPositionBottom : UICollectionViewScrollPositionTop;
+    
+    [self.collectionView scrollToItemAtIndexPath:finalIndexPath
+                                atScrollPosition:scrollPosition
+                                        animated:animated];
 }
 
 #pragma mark - JSQMessages collection view data source
@@ -490,8 +517,16 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     if (needsAvatar) {
         avatarImageDataSource = [collectionView.dataSource collectionView:collectionView avatarImageDataForItemAtIndexPath:indexPath];
         if (avatarImageDataSource != nil) {
-            cell.avatarImageView.image = [avatarImageDataSource avatarImage] ?: [avatarImageDataSource avatarPlaceholderImage];
-            cell.avatarImageView.highlightedImage = [avatarImageDataSource avatarHighlightedImage];
+            
+            UIImage *avatarImage = [avatarImageDataSource avatarImage];
+            if (avatarImage == nil) {
+                cell.avatarImageView.image = [avatarImageDataSource avatarPlaceholderImage];
+                cell.avatarImageView.highlightedImage = nil;
+            }
+            else {
+                cell.avatarImageView.image = avatarImage;
+                cell.avatarImageView.highlightedImage = [avatarImageDataSource avatarHighlightedImage];
+            }
         }
     }
     
@@ -509,6 +544,10 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     }
     
     cell.textView.dataDetectorTypes = UIDataDetectorTypeAll;
+    
+    cell.backgroundColor = [UIColor clearColor];
+    cell.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    cell.layer.shouldRasterize = YES;
     
     return cell;
 }
@@ -617,19 +656,19 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 - (CGFloat)collectionView:(JSQMessagesCollectionView *)collectionView
                    layout:(JSQMessagesCollectionViewFlowLayout *)collectionViewLayout heightForCellTopLabelAtIndexPath:(NSIndexPath *)indexPath
 {
-    return 1.0f;
+    return 0.0f;
 }
 
 - (CGFloat)collectionView:(JSQMessagesCollectionView *)collectionView
                    layout:(JSQMessagesCollectionViewFlowLayout *)collectionViewLayout heightForMessageBubbleTopLabelAtIndexPath:(NSIndexPath *)indexPath
 {
-    return 1.0f;
+    return 0.0f;
 }
 
 - (CGFloat)collectionView:(JSQMessagesCollectionView *)collectionView
                    layout:(JSQMessagesCollectionViewFlowLayout *)collectionViewLayout heightForCellBottomLabelAtIndexPath:(NSIndexPath *)indexPath
 {
-    return 1.0f;
+    return 0.0f;
 }
 
 - (void)collectionView:(JSQMessagesCollectionView *)collectionView
@@ -794,6 +833,10 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 
 - (void)keyboardController:(JSQMessagesKeyboardController *)keyboardController keyboardDidChangeFrame:(CGRect)keyboardFrame
 {
+    if (![self.inputToolbar.contentView.textView isFirstResponder] && self.toolbarBottomLayoutGuide.constant == 0.0f) {
+        return;
+    }
+    
     CGFloat heightFromBottom = CGRectGetMaxY(self.collectionView.frame) - CGRectGetMinY(keyboardFrame);
     
     heightFromBottom = MAX(0.0f, heightFromBottom);
@@ -861,7 +904,7 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 
 - (BOOL)jsq_inputToolbarHasReachedMaximumHeight
 {
-    return (CGRectGetMinY(self.inputToolbar.frame) == self.topLayoutGuide.length);
+    return CGRectGetMinY(self.inputToolbar.frame) == (self.topLayoutGuide.length + self.topContentAdditionalInset);
 }
 
 - (void)jsq_adjustInputToolbarForComposerTextViewContentSizeChange:(CGFloat)dy
@@ -881,8 +924,8 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     CGFloat newToolbarOriginY = toolbarOriginY - dy;
     
     //  attempted to increase origin.Y above topLayoutGuide
-    if (newToolbarOriginY <= self.topLayoutGuide.length) {
-        dy = toolbarOriginY - self.topLayoutGuide.length;
+    if (newToolbarOriginY <= self.topLayoutGuide.length + self.topContentAdditionalInset) {
+        dy = toolbarOriginY - (self.topLayoutGuide.length + self.topContentAdditionalInset);
         [self jsq_scrollComposerTextViewToBottomAnimated:YES];
     }
     
@@ -899,8 +942,8 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 {
     self.toolbarHeightConstraint.constant += dy;
     
-    if (self.toolbarHeightConstraint.constant < kJSQMessagesInputToolbarHeightDefault) {
-        self.toolbarHeightConstraint.constant = kJSQMessagesInputToolbarHeightDefault;
+    if (self.toolbarHeightConstraint.constant < self.inputToolbar.preferredDefaultHeight) {
+        self.toolbarHeightConstraint.constant = self.inputToolbar.preferredDefaultHeight;
     }
     
     [self.view setNeedsUpdateConstraints];

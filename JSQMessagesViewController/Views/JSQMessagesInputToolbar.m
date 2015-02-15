@@ -26,8 +26,6 @@
 #import "UIImage+JSQMessages.h"
 #import "UIView+JSQMessages.h"
 
-const CGFloat kJSQMessagesInputToolbarHeightDefault = 44.0f;
-
 static void * kJSQMessagesInputToolbarKeyValueObservingContext = &kJSQMessagesInputToolbarKeyValueObservingContext;
 
 
@@ -56,9 +54,10 @@ static void * kJSQMessagesInputToolbarKeyValueObservingContext = &kJSQMessagesIn
     
     self.jsq_isObserving = NO;
     self.sendButtonOnRight = YES;
-    
-    NSArray *nibViews = [[NSBundle mainBundle] loadNibNamed:NSStringFromClass([JSQMessagesToolbarContentView class]) owner:nil options:nil];
-    JSQMessagesToolbarContentView *toolbarContentView = [nibViews firstObject];
+
+    self.preferredDefaultHeight = 44.0f;
+
+    JSQMessagesToolbarContentView *toolbarContentView = [self loadToolbarContentView];
     toolbarContentView.frame = self.frame;
     [self addSubview:toolbarContentView];
     [self jsq_pinAllEdgesOfSubview:toolbarContentView];
@@ -75,10 +74,26 @@ static void * kJSQMessagesInputToolbarKeyValueObservingContext = &kJSQMessagesIn
 	self.clipsToBounds = NO;
 }
 
+- (JSQMessagesToolbarContentView *)loadToolbarContentView
+{
+    NSArray *nibViews = [[NSBundle bundleForClass:[JSQMessagesInputToolbar class]] loadNibNamed:NSStringFromClass([JSQMessagesToolbarContentView class])
+                                                                                          owner:nil
+                                                                                        options:nil];
+    return nibViews.firstObject;
+}
+
 - (void)dealloc
 {
     [self jsq_removeObservers];
     _contentView = nil;
+}
+
+#pragma mark - Setters
+
+- (void)setPreferredDefaultHeight:(CGFloat)preferredDefaultHeight
+{
+    NSParameterAssert(preferredDefaultHeight > 0.0f);
+    _preferredDefaultHeight = preferredDefaultHeight;
 }
 
 #pragma mark - Actions
@@ -105,13 +120,12 @@ static void * kJSQMessagesInputToolbarKeyValueObservingContext = &kJSQMessagesIn
 - (void)toggleSendButtonEnabled
 {
     BOOL hasText = [self.contentView.textView hasText] && !self.toolbarButtonsDisabled;
-    
+       
     if (self.sendButtonOnRight)
-	{
+    {
         self.contentView.rightBarButtonItem.enabled = hasText;
     }
-    else
-	{
+    else {
         self.contentView.leftBarButtonItem.enabled = hasText;
     }
 }
