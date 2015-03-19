@@ -85,14 +85,14 @@
     return self.cachedImageView;
 }
 
+- (NSUInteger)mediaHash
+{
+    return self.hash;
+}
+
 - (CGSize)mediaViewDisplaySize
 {
     return self.size;
-}
-
-- (UIView *)mediaPlaceholderView
-{
-    return [JSQMessagesMediaPlaceholderView viewWithActivityIndicator];
 }
 
 #pragma mark - NSObject

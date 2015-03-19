@@ -140,7 +140,7 @@
 - (void)prepareForReuse
 {
     [super prepareForReuse];
-
+    
     self.cellTopLabel.text = nil;
     self.messageBubbleTopLabel.text = nil;
     self.cellBottomLabel.text = nil;
@@ -151,6 +151,11 @@
     
     self.avatarImageView.image = nil;
     self.avatarImageView.highlightedImage = nil;
+}
+
+- (UICollectionViewLayoutAttributes *)preferredLayoutAttributesFittingAttributes:(UICollectionViewLayoutAttributes *)layoutAttributes
+{
+    return layoutAttributes;
 }
 
 - (void)applyLayoutAttributes:(UICollectionViewLayoutAttributes *)layoutAttributes
@@ -168,7 +173,7 @@
     }
     
     self.textViewFrameInsets = customAttributes.textViewFrameInsets;
-
+    
     [self jsq_updateConstraint:self.messageBubbleContainerWidthConstraint
                   withConstant:customAttributes.messageBubbleContainerViewWidth];
     
@@ -257,10 +262,6 @@
 
 - (void)setMediaView:(UIView *)mediaView
 {
-    if ([_mediaView isEqual:mediaView]) {
-        return;
-    }
-
     [self.messageBubbleImageView removeFromSuperview];
     [self.textView removeFromSuperview];
     

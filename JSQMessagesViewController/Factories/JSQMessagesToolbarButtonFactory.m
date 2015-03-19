@@ -20,6 +20,7 @@
 
 #import "UIColor+JSQMessages.h"
 #import "UIImage+JSQMessages.h"
+#import "NSBundle+JSQMessages.h"
 
 
 @implementation JSQMessagesToolbarButtonFactory
@@ -48,6 +49,8 @@
     [sendButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateDisabled];
     
     sendButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0f];
+    sendButton.titleLabel.adjustsFontSizeToFitWidth = YES;
+    sendButton.titleLabel.minimumScaleFactor = 0.85f;
     sendButton.contentMode = UIViewContentModeCenter;
     sendButton.backgroundColor = [UIColor clearColor];
     sendButton.tintColor = [UIColor jsq_messageBubbleBlueColor];

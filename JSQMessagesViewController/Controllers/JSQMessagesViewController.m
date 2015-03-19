@@ -41,6 +41,7 @@
 #import "NSString+JSQMessages.h"
 #import "UIColor+JSQMessages.h"
 #import "UIDevice+JSQMessages.h"
+#import "NSBundle+JSQMessages.h"
 
 
 static void * kJSQMessagesKeyValueObservingContext = &kJSQMessagesKeyValueObservingContext;
@@ -131,7 +132,7 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     self.collectionView.delegate = self;
     
     self.inputToolbar.delegate = self;
-    self.inputToolbar.contentView.textView.placeHolder = NSLocalizedStringFromTable(@"New Message", @"JSQMessages", @"Placeholder text for the message input text view");
+    self.inputToolbar.contentView.textView.placeHolder = [NSBundle jsq_localizedStringForKey:@"new_message"];
     self.inputToolbar.contentView.textView.delegate = self;
 
     self.automaticallyScrollsToMostRecentMessage = YES;
@@ -240,12 +241,14 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     [super viewWillAppear:animated];
     [self.view layoutIfNeeded];
     [self.collectionView.collectionViewLayout invalidateLayout];
-    
-	if (self.automaticallyScrollsToMostRecentMessage) {
-		[self scrollToBottomAnimated:NO];
-		[self.collectionView.collectionViewLayout invalidateLayoutWithContext:[JSQMessagesCollectionViewFlowLayoutInvalidationContext context]];
-	}
-	
+
+    if (self.automaticallyScrollsToMostRecentMessage) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self scrollToBottomAnimated:NO];
+            [self.collectionView.collectionViewLayout invalidateLayoutWithContext:[JSQMessagesCollectionViewFlowLayoutInvalidationContext context]];
+        });
+    }
+
     [self jsq_updateKeyboardTriggerPoint];
 }
 
@@ -700,9 +703,10 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 
 - (NSString *)jsq_currentlyComposedMessageText
 {
-    //  add a space to accept any auto-correct suggestions
-    NSString *text = self.inputToolbar.contentView.textView.text;
-    self.inputToolbar.contentView.textView.text = [text stringByAppendingString:@" "];
+    //  auto-accept any auto-correct suggestions
+    [self.inputToolbar.contentView.textView.inputDelegate selectionWillChange:self.inputToolbar.contentView.textView];
+    [self.inputToolbar.contentView.textView.inputDelegate selectionDidChange:self.inputToolbar.contentView.textView];
+
     return [self.inputToolbar.contentView.textView.text jsq_stringByTrimingWhitespace];
 }
 
