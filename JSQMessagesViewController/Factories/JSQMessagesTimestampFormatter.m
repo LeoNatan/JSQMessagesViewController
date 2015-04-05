@@ -20,7 +20,9 @@
 
 @interface JSQMessagesTimestampFormatter ()
 
-@property (strong, nonatomic, readwrite) NSDateFormatter *dateFormatter;
+@property (strong, nonatomic, readwrite) NSDateFormatter *timeFormatter;
+@property (strong, nonatomic, readwrite) NSDateFormatter *relativeDateFormatter;
+@property (strong, nonatomic, readwrite) NSDateFormatter *timestampFormatter;
 
 @end
 
@@ -46,10 +48,24 @@
 {
     self = [super init];
     if (self) {
-        _dateFormatter = [[NSDateFormatter alloc] init];
-        [_dateFormatter setLocale:[NSLocale currentLocale]];
-        [_dateFormatter setDoesRelativeDateFormatting:YES];
-        
+        self.timeFormatter = [[NSDateFormatter alloc] init];
+        [self.timeFormatter setLocale:[NSLocale currentLocale]];
+        [self.timeFormatter setDoesRelativeDateFormatting:YES];
+		[self.timeFormatter setDateStyle:NSDateFormatterNoStyle];
+		[self.timeFormatter setTimeStyle:NSDateFormatterShortStyle];
+		
+		self.relativeDateFormatter = [[NSDateFormatter alloc] init];
+		[self.relativeDateFormatter setLocale:[NSLocale currentLocale]];
+		[self.relativeDateFormatter setDoesRelativeDateFormatting:YES];
+		[self.relativeDateFormatter setDateStyle:NSDateFormatterMediumStyle];
+		[self.relativeDateFormatter setTimeStyle:NSDateFormatterNoStyle];
+		
+		self.timestampFormatter = [[NSDateFormatter alloc] init];
+		[self.timestampFormatter setLocale:[NSLocale currentLocale]];
+		[self.timestampFormatter setDoesRelativeDateFormatting:YES];
+		[self.timestampFormatter setDateStyle:NSDateFormatterMediumStyle];
+		[self.timestampFormatter setTimeStyle:NSDateFormatterShortStyle];
+		
         UIColor *color = [UIColor lightGrayColor];
         
         NSMutableParagraphStyle *paragraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
@@ -66,13 +82,6 @@
     return self;
 }
 
-- (void)dealloc
-{
-    _dateFormatter = nil;
-    _dateTextAttributes = nil;
-    _timeTextAttributes = nil;
-}
-
 #pragma mark - Formatter
 
 - (NSString *)timestampForDate:(NSDate *)date
@@ -80,10 +89,8 @@
     if (!date) {
         return nil;
     }
-    
-    [self.dateFormatter setDateStyle:NSDateFormatterMediumStyle];
-    [self.dateFormatter setTimeStyle:NSDateFormatterShortStyle];
-    return [self.dateFormatter stringFromDate:date];
+	
+	return [self.timestampFormatter stringFromDate:date];
 }
 
 - (NSAttributedString *)attributedTimestampForDate:(NSDate *)date
@@ -111,10 +118,8 @@
     if (!date) {
         return nil;
     }
-    
-    [self.dateFormatter setDateStyle:NSDateFormatterNoStyle];
-    [self.dateFormatter setTimeStyle:NSDateFormatterShortStyle];
-    return [self.dateFormatter stringFromDate:date];
+	
+    return [self.timeFormatter stringFromDate:date];
 }
 
 - (NSString *)relativeDateForDate:(NSDate *)date
@@ -122,10 +127,8 @@
     if (!date) {
         return nil;
     }
-    
-    [self.dateFormatter setDateStyle:NSDateFormatterMediumStyle];
-    [self.dateFormatter setTimeStyle:NSDateFormatterNoStyle];
-    return [self.dateFormatter stringFromDate:date];
+	
+    return [self.relativeDateFormatter stringFromDate:date];
 }
 
 @end

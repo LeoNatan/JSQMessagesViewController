@@ -29,7 +29,18 @@
 /**
  *  Returns the cached date formatter object used by the `JSQMessagesTimestampFormatter` shared instance.
  */
-@property (strong, nonatomic, readonly) NSDateFormatter *dateFormatter;
+@property (strong, nonatomic, readonly) NSDateFormatter *timeFormatter;
+
+/**
+ *  Returns the cached date formatter object used by the `JSQMessagesTimestampFormatter` shared instance.
+ */
+@property (strong, nonatomic, readonly) NSDateFormatter *relativeDateFormatter;
+
+
+/**
+ *  Returns the cached date formatter object used by the `JSQMessagesTimestampFormatter` shared instance.
+ */
+@property (strong, nonatomic, readonly) NSDateFormatter *timestampFormatter;
 
 /**
  *  The text attributes to apply to the day, month, and year components of the string representation of a given date. 

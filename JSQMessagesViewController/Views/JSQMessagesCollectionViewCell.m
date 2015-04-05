@@ -115,6 +115,13 @@
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(jsq_handleTapGesture:)];
     [self addGestureRecognizer:tap];
     self.tapGestureRecognizer = tap;
+	
+	CALayer* mask = [CALayer layer];
+	mask.contents = (id)[[UIImage imageNamed:@"mask_from"] CGImage];
+	mask.frame = CGRectMake(0, 0, 30, 30);
+	
+	self.avatarImageView.layer.mask = mask;
+	self.avatarImageView.layer.masksToBounds = YES;
 }
 
 - (void)dealloc
@@ -140,7 +147,7 @@
 - (void)prepareForReuse
 {
     [super prepareForReuse];
-    
+
     self.cellTopLabel.text = nil;
     self.messageBubbleTopLabel.text = nil;
     self.cellBottomLabel.text = nil;
@@ -151,6 +158,9 @@
     
     self.avatarImageView.image = nil;
     self.avatarImageView.highlightedImage = nil;
+	
+	[_mediaView removeFromSuperview];
+	_mediaView = nil;
 }
 
 - (UICollectionViewLayoutAttributes *)preferredLayoutAttributesFittingAttributes:(UICollectionViewLayoutAttributes *)layoutAttributes
@@ -261,27 +271,16 @@
 }
 
 - (void)setMediaView:(UIView *)mediaView
-{
+{	
     [self.messageBubbleImageView removeFromSuperview];
     [self.textView removeFromSuperview];
     
     [mediaView setTranslatesAutoresizingMaskIntoConstraints:NO];
     mediaView.frame = self.messageBubbleContainerView.bounds;
     
-    [self.messageBubbleContainerView addSubview:mediaView];
-    [self.messageBubbleContainerView jsq_pinAllEdgesOfSubview:mediaView];
-    _mediaView = mediaView;
-    
-    //  because of cell re-use (and caching media views, if using built-in library media item)
-    //  we may have dequeued a cell with a media view and add this one on top
-    //  thus, remove any additional subviews hidden behind the new media view
-    dispatch_async(dispatch_get_main_queue(), ^{
-        for (NSUInteger i = 0; i < self.messageBubbleContainerView.subviews.count; i++) {
-            if (self.messageBubbleContainerView.subviews[i] != _mediaView) {
-                [self.messageBubbleContainerView.subviews[i] removeFromSuperview];
-            }
-        }
-    });
+	[self.messageBubbleContainerView addSubview:mediaView];
+	[self.messageBubbleContainerView jsq_pinAllEdgesOfSubview:mediaView];
+	_mediaView = mediaView;
 }
 
 #pragma mark - Getters

@@ -67,8 +67,6 @@ const CGFloat kJSQMessagesCollectionViewAvatarSizeDefault = 30.0f;
 
 @end
 
-
-
 @implementation JSQMessagesCollectionViewFlowLayout
 
 @dynamic collectionView;
@@ -439,7 +437,7 @@ const CGFloat kJSQMessagesCollectionViewAvatarSizeDefault = 30.0f;
     if (cachedSize != nil) {
         return [cachedSize CGSizeValue];
     }
-    
+	
     CGSize finalSize = CGSizeZero;
     
     if ([messageItem isMediaMessage]) {
@@ -477,7 +475,7 @@ const CGFloat kJSQMessagesCollectionViewAvatarSizeDefault = 30.0f;
     }
     
     [self.messageBubbleCache setObject:[NSValue valueWithCGSize:finalSize] forKey:@([messageItem messageHash])];
-    
+	
     return finalSize;
 }
 
