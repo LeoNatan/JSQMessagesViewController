@@ -432,11 +432,6 @@ const CGFloat kJSQMessagesCollectionViewAvatarSizeDefault = 30.0f;
 - (CGSize)messageBubbleSizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     id<JSQMessageData> messageItem = [self.collectionView.dataSource collectionView:self.collectionView messageDataForItemAtIndexPath:indexPath];
-    
-    NSValue *cachedSize = [self.messageBubbleCache objectForKey:@([messageItem messageHash])];
-    if (cachedSize != nil) {
-        return [cachedSize CGSizeValue];
-    }
 	
     CGSize finalSize = CGSizeZero;
     
@@ -444,6 +439,11 @@ const CGFloat kJSQMessagesCollectionViewAvatarSizeDefault = 30.0f;
         finalSize = [[messageItem media] mediaViewDisplaySize];
     }
     else {
+		NSValue *cachedSize = [self.messageBubbleCache objectForKey:@([messageItem messageHash])];
+		if (cachedSize != nil) {
+			return [cachedSize CGSizeValue];
+		}
+		
         CGSize avatarSize = [self jsq_avatarSizeForIndexPath:indexPath];
         
         //  from the cell xibs, there is a 2 point space between avatar and bubble
@@ -472,9 +472,9 @@ const CGFloat kJSQMessagesCollectionViewAvatarSizeDefault = 30.0f;
         CGFloat finalWidth = MAX(stringSize.width + horizontalInsetsTotal, self.bubbleImageAssetWidth) + 2.0f;
         
         finalSize = CGSizeMake(finalWidth, stringSize.height + verticalInsets);
+		
+		[self.messageBubbleCache setObject:[NSValue valueWithCGSize:finalSize] forKey:@([messageItem messageHash])];
     }
-    
-    [self.messageBubbleCache setObject:[NSValue valueWithCGSize:finalSize] forKey:@([messageItem messageHash])];
 	
     return finalSize;
 }
