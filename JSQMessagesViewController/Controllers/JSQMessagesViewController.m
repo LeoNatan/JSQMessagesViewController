@@ -173,6 +173,9 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     _collectionView.dataSource = nil;
     _collectionView.delegate = nil;
     _collectionView = nil;
+    
+    _inputToolbar.contentView.textView.delegate = nil;
+    _inputToolbar.delegate = nil;
     _inputToolbar = nil;
     
     _toolbarHeightConstraint = nil;
