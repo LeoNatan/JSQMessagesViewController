@@ -20,6 +20,8 @@
 
 @interface UIImage (JSQMessages)
 
+- (UIImage*)ln_highlightedImage;
+
 /**
  *  Creates and returns a new image object that is masked with the specified mask color.
  *

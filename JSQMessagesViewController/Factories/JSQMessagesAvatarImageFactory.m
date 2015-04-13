@@ -19,7 +19,7 @@
 #import "JSQMessagesAvatarImageFactory.h"
 
 #import "UIColor+JSQMessages.h"
-
+#import "UIImage+JSQMessages.h"
 
 @interface JSQMessagesAvatarImageFactory ()
 
@@ -52,12 +52,16 @@
 
 + (JSQMessagesAvatarImage *)avatarImageWithImage:(UIImage *)image diameter:(NSUInteger)diameter
 {
-    UIImage *avatar = [JSQMessagesAvatarImageFactory circularAvatarImage:image withDiameter:diameter];
-    UIImage *highlightedAvatar = [JSQMessagesAvatarImageFactory circularAvatarHighlightedImage:image withDiameter:diameter];
-
-    return [[JSQMessagesAvatarImage alloc] initWithAvatarImage:avatar
-                                              highlightedImage:highlightedAvatar
-                                              placeholderImage:avatar];
+//    UIImage *avatar = [JSQMessagesAvatarImageFactory circularAvatarImage:image withDiameter:diameter];
+//    UIImage *highlightedAvatar = [JSQMessagesAvatarImageFactory circularAvatarHighlightedImage:image withDiameter:diameter];
+//
+//    return [[JSQMessagesAvatarImage alloc] initWithAvatarImage:avatar
+//                                              highlightedImage:highlightedAvatar
+//                                              placeholderImage:avatar];
+	
+	return [[JSQMessagesAvatarImage alloc] initWithAvatarImage:image
+											  highlightedImage:[image ln_highlightedImage]
+											  placeholderImage:image];
 }
 
 + (UIImage *)circularAvatarImage:(UIImage *)image withDiameter:(NSUInteger)diameter

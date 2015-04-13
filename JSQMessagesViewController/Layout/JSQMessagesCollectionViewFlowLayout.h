@@ -56,7 +56,7 @@ FOUNDATION_EXPORT const CGFloat kJSQMessagesCollectionViewAvatarSizeDefault;
 /**
  *  The collection view object currently using this layout object.
  */
-@property (readonly, nonatomic) JSQMessagesCollectionView *collectionView;
+@property (readonly, nonatomic) JSQMessagesCollectionView *jsq_collectionView;
 
 /**
  *  Specifies whether or not the layout should enable spring behavior dynamics for its items using `UIDynamics`.

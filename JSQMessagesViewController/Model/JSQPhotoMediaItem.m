@@ -20,14 +20,13 @@
 
 #import "JSQMessagesMediaPlaceholderView.h"
 #import "JSQMessagesMediaViewBubbleImageMasker.h"
-
+#import "UIImage+JSQMessages.h"
 
 @interface JSQPhotoMediaItem ()
 
 @property (strong, nonatomic) UIImageView *cachedImageView;
 
 @end
-
 
 @implementation JSQPhotoMediaItem
 
@@ -74,8 +73,8 @@
     
     if (self.cachedImageView == nil) {
         CGSize size = [self mediaViewDisplaySize];
-        UIImageView *imageView = [[UIImageView alloc] initWithImage:self.image];
-        imageView.frame = CGRectMake(0.0f, 0.0f, size.width, size.height);
+		UIImageView *imageView = [[UIImageView alloc] initWithImage:self.image highlightedImage:self.image.ln_highlightedImage];
+		imageView.frame = CGRectMake(0.0f, 0.0f, size.width, size.height);
         imageView.contentMode = UIViewContentModeScaleAspectFill;
         imageView.clipsToBounds = YES;
         [JSQMessagesMediaViewBubbleImageMasker applyBubbleImageMaskToMediaView:imageView isOutgoing:self.appliesMediaViewMaskAsOutgoing];

@@ -23,6 +23,30 @@
 
 @implementation UIImage (JSQMessages)
 
+- (UIImage*)ln_highlightedImage
+{
+	CGRect frame = CGRectMake(0.0f, 0.0f, self.size.width, self.size.height);
+	UIImage *newImage = nil;
+	
+	UIGraphicsBeginImageContextWithOptions(frame.size, NO, self.scale);
+	{
+		CGContextRef context = UIGraphicsGetCurrentContext();
+		CGContextSaveGState(context);
+		
+		[self drawInRect:frame];
+		
+		CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0.1f alpha:0.3f].CGColor);
+		CGContextFillRect(context, frame);
+		
+		newImage = UIGraphicsGetImageFromCurrentImageContext();
+		
+		CGContextRestoreGState(context);
+	}
+	UIGraphicsEndImageContext();
+	
+	return newImage;
+}
+
 - (UIImage *)jsq_imageMaskedWithColor:(UIColor *)maskColor
 {
     NSParameterAssert(maskColor != nil);

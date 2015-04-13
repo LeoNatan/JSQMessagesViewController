@@ -208,12 +208,20 @@
 {
     [super setHighlighted:highlighted];
     self.messageBubbleImageView.highlighted = highlighted;
+	if([self.mediaView respondsToSelector:@selector(setHighlighted:)])
+	{
+		[(UIImageView*)self.mediaView setHighlighted:highlighted];
+	}
 }
 
 - (void)setSelected:(BOOL)selected
 {
     [super setSelected:selected];
     self.messageBubbleImageView.highlighted = selected;
+	if([self.mediaView respondsToSelector:@selector(setHighlighted:)])
+	{
+		[(UIImageView*)self.mediaView setHighlighted:selected];
+	}
 }
 
 //  FIXME: radar 18326340

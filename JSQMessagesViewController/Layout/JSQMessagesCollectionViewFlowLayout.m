@@ -73,6 +73,11 @@ const CGFloat kJSQMessagesCollectionViewAvatarSizeDefault = 30.0f;
 
 #pragma mark - Initialization
 
+- (JSQMessagesCollectionView *)jsq_collectionView
+{
+	return (id)self.collectionView;
+}
+
 - (void)jsq_configureFlowLayout
 {
     self.scrollDirection = UICollectionViewScrollDirectionVertical;
@@ -431,7 +436,7 @@ const CGFloat kJSQMessagesCollectionViewAvatarSizeDefault = 30.0f;
 
 - (CGSize)messageBubbleSizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    id<JSQMessageData> messageItem = [self.collectionView.dataSource collectionView:self.collectionView messageDataForItemAtIndexPath:indexPath];
+    id<JSQMessageData> messageItem = [self.jsq_collectionView.dataSource collectionView:self.jsq_collectionView messageDataForItemAtIndexPath:indexPath];
 	
     CGSize finalSize = CGSizeZero;
     
@@ -506,29 +511,29 @@ const CGFloat kJSQMessagesCollectionViewAvatarSizeDefault = 30.0f;
     
     layoutAttributes.messageBubbleFont = self.messageBubbleFont;
     
-    layoutAttributes.incomingAvatarViewSize = self.incomingAvatarViewSize;
-    
-    layoutAttributes.outgoingAvatarViewSize = self.outgoingAvatarViewSize;
-    
-    layoutAttributes.cellTopLabelHeight = [self.collectionView.delegate collectionView:self.collectionView
-                                                                                layout:self
-                                                      heightForCellTopLabelAtIndexPath:indexPath];
-    
-    layoutAttributes.messageBubbleTopLabelHeight = [self.collectionView.delegate collectionView:self.collectionView
-                                                                                         layout:self
-                                                      heightForMessageBubbleTopLabelAtIndexPath:indexPath];
-    
-    layoutAttributes.cellBottomLabelHeight = [self.collectionView.delegate collectionView:self.collectionView
-                                                                                   layout:self
-                                                      heightForCellBottomLabelAtIndexPath:indexPath];
+	layoutAttributes.incomingAvatarViewSize = self.incomingAvatarViewSize;
+	
+	layoutAttributes.outgoingAvatarViewSize = self.outgoingAvatarViewSize;
+	
+	layoutAttributes.cellTopLabelHeight = [self.jsq_collectionView.delegate collectionView:self.jsq_collectionView
+																					layout:self
+														  heightForCellTopLabelAtIndexPath:indexPath];
+	
+	layoutAttributes.messageBubbleTopLabelHeight = [self.jsq_collectionView.delegate collectionView:self.jsq_collectionView
+																							 layout:self
+														  heightForMessageBubbleTopLabelAtIndexPath:indexPath];
+	
+	layoutAttributes.cellBottomLabelHeight = [self.jsq_collectionView.delegate collectionView:self.jsq_collectionView
+																					   layout:self
+														  heightForCellBottomLabelAtIndexPath:indexPath];
 }
 
 - (CGSize)jsq_avatarSizeForIndexPath:(NSIndexPath *)indexPath
 {
-    id<JSQMessageData> messageData = [self.collectionView.dataSource collectionView:self.collectionView messageDataForItemAtIndexPath:indexPath];
+    id<JSQMessageData> messageData = [self.jsq_collectionView.dataSource collectionView:self.jsq_collectionView messageDataForItemAtIndexPath:indexPath];
     NSString *messageSender = [messageData senderId];
-   
-    if ([messageSender isEqualToString:[self.collectionView.dataSource senderId]]) {
+	
+    if ([messageSender isEqualToString:[self.jsq_collectionView.dataSource senderId]]) {
         return self.outgoingAvatarViewSize;
     }
     

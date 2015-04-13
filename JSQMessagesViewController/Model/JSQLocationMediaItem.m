@@ -20,7 +20,7 @@
 
 #import "JSQMessagesMediaPlaceholderView.h"
 #import "JSQMessagesMediaViewBubbleImageMasker.h"
-
+#import "UIImage+JSQMessages.h"
 
 @interface JSQLocationMediaItem ()
 
@@ -145,7 +145,7 @@
     }
     
     if (self.cachedMapImageView == nil) {
-        UIImageView *imageView = [[UIImageView alloc] initWithImage:self.cachedMapSnapshotImage];
+        UIImageView *imageView = [[UIImageView alloc] initWithImage:self.cachedMapSnapshotImage highlightedImage:self.cachedMapSnapshotImage.ln_highlightedImage];
         imageView.contentMode = UIViewContentModeScaleAspectFill;
         imageView.clipsToBounds = YES;
         [JSQMessagesMediaViewBubbleImageMasker applyBubbleImageMaskToMediaView:imageView isOutgoing:self.appliesMediaViewMaskAsOutgoing];
