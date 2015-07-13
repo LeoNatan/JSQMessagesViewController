@@ -99,4 +99,10 @@
  */
 - (id<JSQMessageMediaData>)media;
 
+/**
+ *  @return Whether the text message is RTL.
+ *
+ */
+- (BOOL)isRTL;
+
 @end

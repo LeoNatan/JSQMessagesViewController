@@ -63,6 +63,8 @@
  */
 @property (copy, nonatomic, readonly) id<JSQMessageMediaData> media;
 
+@property (assign, nonatomic, readonly, getter=isRTL) BOOL RTL;
+
 
 #pragma mark - Initialization
 
@@ -73,15 +75,16 @@
  *  @param senderId    The unique identifier for the user who sent the message. This value must not be `nil`.
  *  @param displayName The display name for the user who sent the message. This value must not be `nil`.
  *  @param text        The body text of the message. This value must not be `nil`.
+ *  @param RTL         Whether the message is RTL.
  *
  *  @discussion Initializing a `JSQMessage` with this method will set `isMediaMessage` to `NO`.
  *
  *  @return An initialized `JSQMessage` object if successful, `nil` otherwise.
  */
 + (instancetype)messageWithSenderId:(NSString *)senderId
-                        displayName:(NSString *)displayName
-                               text:(NSString *)text;
-
+						displayName:(NSString *)displayName
+							   text:(NSString *)text
+							  isRTL:(BOOL)RTL;
 /**
  *  Initializes and returns a message object having the given senderId, senderDisplayName, date, and text.
  *
@@ -89,15 +92,17 @@
  *  @param senderDisplayName The display name for the user who sent the message. This value must not be `nil`.
  *  @param date              The date that the message was sent. This value must not be `nil`.
  *  @param text              The body text of the message. This value must not be `nil`.
+ *  @param RTL         Whether the message is RTL.
  *
  *  @discussion Initializing a `JSQMessage` with this method will set `isMediaMessage` to `NO`.
  *
  *  @return An initialized `JSQMessage` object if successful, `nil` otherwise.
  */
 - (instancetype)initWithSenderId:(NSString *)senderId
-               senderDisplayName:(NSString *)senderDisplayName
-                            date:(NSDate *)date
-                            text:(NSString *)text;
+			   senderDisplayName:(NSString *)senderDisplayName
+							date:(NSDate *)date
+							text:(NSString *)text
+						   isRTL:(BOOL)RTL;
 /**
  *  Initializes and returns a message object having the given senderId, displayName, media,
  *  and current system date.

@@ -154,8 +154,8 @@
     
     self.textView.dataDetectorTypes = UIDataDetectorTypeNone;
     self.textView.text = nil;
-    self.textView.attributedText = nil;
-    
+	self.textView.attributedText = nil;
+	
     self.avatarImageView.image = nil;
     self.avatarImageView.highlightedImage = nil;
 	
@@ -344,6 +344,18 @@
     }
     
     return YES;
+}
+
+#pragma mark - Custom Actions
+
+- (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+{
+	return [self.delegate canPerformAction:action forCell:self sender:sender];
+}
+
+- (void)delete:(id)sender
+{
+	[self.delegate performAction:@selector(delete:) forCell:self sender:sender];
 }
 
 @end

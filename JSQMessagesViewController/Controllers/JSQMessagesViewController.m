@@ -102,6 +102,8 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 @implementation JSQMessagesViewController
 {
 	BOOL _enforceScrollToBottom;
+	BOOL _userInitiatedScroll;
+	NSTimer* _scrollTimer;
 }
 
 #pragma mark - Class methods
@@ -188,6 +190,9 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     
     [_keyboardController endListeningForKeyboard];
     _keyboardController = nil;
+	
+	[_scrollTimer invalidate];
+	_scrollTimer = nil;
 }
 
 #pragma mark - Setters
@@ -381,7 +386,7 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     [self.collectionView.collectionViewLayout invalidateLayoutWithContext:[JSQMessagesCollectionViewFlowLayoutInvalidationContext context]];
     [self.collectionView reloadData];
     
-    if (self.automaticallyScrollsToMostRecentMessage && ![self jsq_isMenuVisible]) {
+    if (self.automaticallyScrollsToMostRecentMessage && ![self jsq_isMenuVisible] && _userInitiatedScroll == NO) {
 		dispatch_async(dispatch_get_main_queue(), ^{
 			dispatch_async(dispatch_get_main_queue(), ^{
 				dispatch_async(dispatch_get_main_queue(), ^{
@@ -394,8 +399,16 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 
 - (void)scrollToBottomAnimated:(BOOL)animated
 {
+	_userInitiatedScroll = NO;
+	
+	//Leo: Workaround, these somehow trigger proper layout calculation.
+	[self topLayoutGuide];
+	[self bottomLayoutGuide];
+	
+	CGPoint newOffset = CGPointMake(0, MAX(- self.collectionView.contentInset.top, self.collectionView.contentSize.height - (self.collectionView.bounds.size.height - self.collectionView.contentInset.bottom)));
+	
 	void (^scrollToBottomAnimation)() = ^{
-		self.collectionView.contentOffset = CGPointMake(0, MAX(- self.collectionView.contentInset.top, self.collectionView.contentSize.height - (self.collectionView.bounds.size.height - self.collectionView.contentInset.bottom)));
+		self.collectionView.contentOffset = newOffset;
 	};
 	
 	if(!animated)
@@ -477,15 +490,14 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     cell.delegate = collectionView;
     
     if (!isMediaMessage) {
-        cell.textView.text = [messageItem text];
-        NSParameterAssert(cell.textView.text != nil);
+        NSParameterAssert([messageItem text] != nil);
 		
-		NSMutableAttributedString* subjectAttrString = [[cell.textView attributedText] mutableCopy];
-		NSMutableDictionary* attributes = [[subjectAttrString attributesAtIndex:0 effectiveRange:NULL] mutableCopy];
-		[attributes removeObjectForKey:@"NSLink"];
-		[subjectAttrString setAttributes:attributes range:NSMakeRange(0, subjectAttrString.length)];
+		NSMutableParagraphStyle* paragraph = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+		paragraph.alignment = messageItem.isRTL ? NSTextAlignmentRight : NSTextAlignmentLeft;
+		NSDictionary* attributes = @{NSFontAttributeName: cell.textView.font, NSParagraphStyleAttributeName: paragraph};
+		NSAttributedString* subjectAttrString = [[NSAttributedString alloc] initWithString:messageItem.text attributes:attributes];
 		[cell.textView setAttributedText:subjectAttrString];
-        
+		
         id<JSQMessageBubbleImageDataSource> bubbleImageDataSource = [collectionView.dataSource collectionView:collectionView messageBubbleImageDataForItemAtIndexPath:indexPath];
         if (bubbleImageDataSource != nil) {
             cell.messageBubbleImageView.image = [bubbleImageDataSource messageBubbleImage];
@@ -581,6 +593,39 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 
 #pragma mark - Collection view delegate
 
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+	_userInitiatedScroll = YES;
+	
+	[_scrollTimer invalidate];
+	_scrollTimer = [NSTimer scheduledTimerWithTimeInterval:30 target:self selector:@selector(_resetUserInitiatedScroll) userInfo:nil repeats:NO];
+}
+
+- (void)_resetUserInitiatedScroll
+{
+	_userInitiatedScroll = NO;
+	
+	[_scrollTimer invalidate];
+	_scrollTimer = nil;
+}
+
+- (CGFloat)verticalOffsetForBottom
+{
+	CGFloat scrollViewHeight = self.collectionView.bounds.size.height;
+	CGFloat scrollContentSizeHeight = self.collectionView.contentSize.height;
+	CGFloat bottomInset = self.collectionView.contentInset.bottom;
+	CGFloat scrollViewBottomOffset = scrollContentSizeHeight + bottomInset - scrollViewHeight;
+	return scrollViewBottomOffset;
+}
+
+- (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset
+{
+	if(targetContentOffset->y >= [self verticalOffsetForBottom])
+	{
+		[self _resetUserInitiatedScroll];
+	}
+}
+
 - (void)collectionView:(UICollectionView *)collectionView willDisplayCell:(JSQMessagesCollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath
 {
 	cell.clipsToBounds = NO;
@@ -603,12 +648,6 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 
 - (BOOL)collectionView:(JSQMessagesCollectionView *)collectionView shouldShowMenuForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    //  disable menu for media messages
-    id<JSQMessageData> messageItem = [collectionView.dataSource collectionView:collectionView messageDataForItemAtIndexPath:indexPath];
-    if ([messageItem isMediaMessage]) {
-        return NO;
-    }
-    
     self.selectedIndexPathForMenu = indexPath;
     
     //  textviews are selectable to allow data detectors
@@ -621,9 +660,15 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     return YES;
 }
 
-- (BOOL)collectionView:(UICollectionView *)collectionView canPerformAction:(SEL)action forItemAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender
+- (BOOL)collectionView:(JSQMessagesCollectionView *)collectionView canPerformAction:(SEL)action forItemAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender
 {
-    if (action == @selector(copy:)) {
+	if (action == @selector(copy:)) {
+		//  disable copy for media messages
+		id<JSQMessageData> messageItem = [collectionView.dataSource collectionView:collectionView messageDataForItemAtIndexPath:indexPath];
+		if ([messageItem isMediaMessage]) {
+			return NO;
+		}
+		
         return YES;
     }
     
@@ -799,7 +844,7 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
 {
 	if(context == kJSQCollectionViewSizeKeyValueObservingContext)
 	{
-		if(_enforceScrollToBottom && object == self.collectionView && [keyPath isEqualToString:@"contentSize"])
+		if(_enforceScrollToBottom && object == self.collectionView && [keyPath isEqualToString:@"contentSize"] && _userInitiatedScroll == NO)
 		{
 			[self scrollToBottomAnimated:NO];
 		}
@@ -836,6 +881,11 @@ static void * kJSQCollectionViewSizeKeyValueObservingContext = &kJSQCollectionVi
     heightFromBottom = MAX(0.0f, heightFromBottom);
     
     [self jsq_setToolbarBottomLayoutGuideConstant:heightFromBottom];
+	
+	if(_userInitiatedScroll == NO)
+	{
+		[self scrollToBottomAnimated:YES];
+	}
 }
 
 - (void)jsq_setToolbarBottomLayoutGuideConstant:(CGFloat)constant

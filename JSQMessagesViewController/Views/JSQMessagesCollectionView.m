@@ -17,6 +17,7 @@
 //
 
 #import "JSQMessagesCollectionView.h"
+#import "JSQMessagesViewController.h"
 
 #import "JSQMessagesCollectionViewFlowLayout.h"
 #import "JSQMessagesCollectionViewCellIncoming.h"
@@ -167,6 +168,16 @@
     [self.delegate collectionView:self
             didTapCellAtIndexPath:indexPath
                     touchLocation:position];
+}
+
+- (BOOL)canPerformAction:(SEL)action forCell:(UICollectionViewCell*)cell sender:(id)sender
+{
+	return [self.delegate collectionView:self canPerformAction:action forItemAtIndexPath:[self indexPathForCell:cell] withSender:sender];
+}
+
+- (void)performAction:(SEL)action forCell:(UICollectionViewCell*)cell sender:(id)sender
+{
+	[self.delegate collectionView:self performAction:action forItemAtIndexPath:[self indexPathForCell:cell] withSender:sender];
 }
 
 @end

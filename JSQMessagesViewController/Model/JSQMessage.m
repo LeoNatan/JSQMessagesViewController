@@ -37,23 +37,27 @@
 + (instancetype)messageWithSenderId:(NSString *)senderId
                         displayName:(NSString *)displayName
                                text:(NSString *)text
+							  isRTL:(BOOL)RTL
 {
     return [[JSQMessage alloc] initWithSenderId:senderId
                               senderDisplayName:displayName
                                            date:[NSDate date]
-                                           text:text];
+                                           text:text
+										  isRTL:RTL];
 }
 
 - (instancetype)initWithSenderId:(NSString *)senderId
-               senderDisplayName:(NSString *)senderDisplayName
-                            date:(NSDate *)date
-                            text:(NSString *)text
+			   senderDisplayName:(NSString *)senderDisplayName
+							date:(NSDate *)date
+							text:(NSString *)text
+							  isRTL:(BOOL)RTL
 {
     NSParameterAssert(text != nil);
-    
+	
     self = [self initWithSenderId:senderId senderDisplayName:senderDisplayName date:date isMedia:NO];
     if (self) {
         _text = [text copy];
+		_RTL = RTL;
     }
     return self;
 }
@@ -203,11 +207,12 @@
                                                               date:self.date
                                                              media:self.media];
     }
-    
-    return [[[self class] allocWithZone:zone] initWithSenderId:self.senderId
-                                             senderDisplayName:self.senderDisplayName
-                                                          date:self.date
-                                                          text:self.text];
+	
+	return [[[self class] allocWithZone:zone] initWithSenderId:self.senderId
+											 senderDisplayName:self.senderDisplayName
+														  date:self.date
+														  text:self.text
+														 isRTL:self.isRTL];
 }
 
 @end

@@ -60,6 +60,10 @@
  */
 - (void)messagesCollectionViewCellDidTapCell:(JSQMessagesCollectionViewCell *)cell atPosition:(CGPoint)position;
 
+- (BOOL)canPerformAction:(SEL)action forCell:(UICollectionViewCell*)cell sender:(id)sender;
+
+- (void)performAction:(SEL)action forCell:(UICollectionViewCell*)cell sender:(id)sender;
+
 @end
 
 
